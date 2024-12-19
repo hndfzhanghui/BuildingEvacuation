@@ -89,6 +89,7 @@ class Building:
     def __init__(self):
         self.floors = {}
         self.stairs = {}  # 改为使用元组标识：(floor1, floor2)，其中floor1 < floor2
+        self.fire_model = None  # 将在initialize_building中初始化
     
     def add_floor(self, floor_number, width, length, capacity):
         """添加楼层"""
@@ -170,3 +171,9 @@ class Building:
         
         # 只设置一楼的主出口
         self.floors[1].set_main_exit(0, 17.5)
+        
+        # 初始化火灾模型
+        from fire_smoke_growth import FireModel
+        self.fire_model = FireModel(self)
+        # 设置初始着火点（例如在room_1_1）
+        self.fire_model.initialize_fire("room_1_1")
