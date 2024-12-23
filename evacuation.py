@@ -227,84 +227,40 @@ class EvacuationSimulation:
         agent.velocity = actual_velocity
         agent.position += agent.velocity * self.dt
 
-    # def _avoid_collisions(self, agent, desired_velocity):
-    #     # 当前代理的位置和楼层
-    #     position = agent.position
-    #     floor_agents = [other for other in self.agents if other.floor == agent.floor and other is not agent]
-    #
-    #     if not floor_agents:
-    #         return desired_velocity
-    #
-    #     # 所有其他代理的位置矩阵
-    #     other_positions = np.array([other.position for other in floor_agents])
-    #
-    #     # 计算所有其他代理到当前代理的距离向量和距离
-    #     diff = other_positions - position
-    #     distances = np.linalg.norm(diff, axis=1)
-    #
-    #     # 排斥力计算：距离小于一定范围时产生作用
-    #     min_distances = agent.radius * 2
-    #     mask = distances < min_distances  # 只考虑近距离的代理人
-    #     if not np.any(mask):
-    #         return desired_velocity
-    #
-    #     repulsion_forces = np.zeros_like(diff)
-    #     repulsion_forces[mask] = diff[mask] / (distances[mask][:, None] + 1e-6)
-    #
-    #     # 总排斥力
-    #     total_repulsion = np.sum(repulsion_forces, axis=0) * 0.5
-    #     velocity = desired_velocity - total_repulsion
-    #
-    #     # 限制速度
-    #     speed = np.linalg.norm(velocity)
-    #     if speed > agent.desired_speed:
-    #         velocity = velocity / speed * agent.desired_speed
-    #
-    #     return velocity
-
     def _avoid_collisions(self, agent, desired_velocity):
-        # 将同楼层所有Agent的位置一次性提取出来
-        # 首先构建一个数组，包含所有与agent楼层相同且不是agent本人的位置
-        positions = []
-        for other in self.agents:
-            if other is not agent and other.floor == agent.floor:
-                positions.append(other.position)
-
-        if len(positions) == 0:
-            # 没有同楼层其他Agent，直接返回desired_velocity
+        # 当前代理的位置和楼层
+        position = agent.position
+        floor_agents = [other for other in self.agents if other.floor == agent.floor and other is not agent]
+    
+        if not floor_agents:
             return desired_velocity
-
-        positions = np.array(positions)  # shape: (M, 2), M为同楼层其他agent数量
-
-        # 计算位置差值向量
-        diff = positions - agent.position  # shape: (M, 2)
-
-        # 计算距离向量
-        distances = np.sqrt(np.sum(diff ** 2, axis=1))  # shape: (M,)
-
-        min_dist = agent.radius * 2
-
-        # 找出距离小于min_dist的agent索引
-        close_indices = np.where(distances < min_dist)[0]
-        if close_indices.size > 0:
-            # 对close_indices进行斥力计算
-            safe_dist = distances[close_indices] + 1e-6
-            repulsions = diff[close_indices] / safe_dist[:, np.newaxis]  # 每个元素是repulsion向量
-
-            # 汇总所有repulsion
-            total_repulsion = np.sum(repulsions, axis=0) * 0.5
-
-            velocity = desired_velocity - total_repulsion
-        else:
-            velocity = desired_velocity
-
-        # 限制最大速度
-        speed = np.sqrt(np.sum(velocity ** 2))
+    
+        # 所有其他代理的位置矩阵
+        other_positions = np.array([other.position for other in floor_agents])
+    
+        # 计算所有其他代理到当前代理的距离向量和距离
+        diff = other_positions - position
+        distances = np.linalg.norm(diff, axis=1)
+    
+        # 排斥力计算：距离小于一定范围时产生作用
+        min_distances = agent.radius * 2
+        mask = distances < min_distances  # 只考虑近距离的代理人
+        if not np.any(mask):
+            return desired_velocity
+    
+        repulsion_forces = np.zeros_like(diff)
+        repulsion_forces[mask] = diff[mask] / (distances[mask][:, None] + 1e-6)
+    
+        # 总排斥力
+        total_repulsion = np.sum(repulsion_forces, axis=0) * 0.5
+        velocity = desired_velocity - total_repulsion
+    
+        # 限制速度
+        speed = np.linalg.norm(velocity)
         if speed > agent.desired_speed:
             velocity = velocity / speed * agent.desired_speed
-
+    
         return velocity
-
 
     def is_evacuation_complete(self):
         return len(self.agents) == 0

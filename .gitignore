@@ -1,6 +1,8 @@
 # 默认忽略的文件
 /shelf/
 /workspace.xml
+.idea/
+
 
 # Python
 __pycache__/

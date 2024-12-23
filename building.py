@@ -88,8 +88,8 @@ class Stairs:
 class Building:
     def __init__(self):
         self.floors = {}
-        self.stairs = {}  # 改为使用元组标识：(floor1, floor2)，其中floor1 < floor2
-        self.fire_model = None  # 将在initialize_building中初始化
+        self.stairs = {}
+        self.fire_model = None
     
     def add_floor(self, floor_number, width, length, capacity):
         """添加楼层"""
@@ -98,7 +98,6 @@ class Building:
     def add_stairs(self, connecting_floors, capacity):
         """添加楼梯"""
         stairs = Stairs(connecting_floors, capacity)
-        # 使用有序的楼层对作为键
         key = tuple(sorted(connecting_floors))
         self.stairs[key] = stairs
         return stairs
